@@ -7,6 +7,7 @@ class AuthProvider with ChangeNotifier {
   final String _adminPassword = 'admin123';
 
   final String studentLoginUrl = 'http://16.16.105.136:5000/api/userlogin';
+  final String adminLoginUrl = 'http://54.177.10.216:5000/api/addadmin';
 
   Map<String, dynamic>? _userData;
   Map<String, dynamic>? get userData => _userData;
