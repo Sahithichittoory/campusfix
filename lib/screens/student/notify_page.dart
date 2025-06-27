@@ -1,102 +1,119 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
-import '../../providers/block_provider.dart';
-
-class SolvedScreen extends StatelessWidget {
-  const SolvedScreen({super.key});
+class NotificationPage extends StatelessWidget {
+  const NotificationPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final blockProvider = Provider.of<BlockProvider>(context);
-    final solvedIssues = blockProvider.getAllSolvedIssues();
-
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Solved Issues"),
-        backgroundColor: Colors.deepPurple,
-      ),
-      body: solvedIssues.isEmpty
-          ? const Center(
-        child: Text(
-          "No issues marked as solved yet.",
-          style: TextStyle(fontSize: 16),
-        ),
-      )
-          : ListView.builder(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
-        itemCount: solvedIssues.length,
-        itemBuilder: (ctx, index) {
-          final issueData = solvedIssues[index];
+      backgroundColor: const Color(0xFFFEC5F6),
+      body: Stack(
+        children: [
+          /// Gradient header background
+          Container(
+            height: 180,
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0xFFC562AF), Color(0xFFB33791)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+          ),
 
-          return Stack(
-            children: [
-              Card(
-                margin: const EdgeInsets.only(bottom: 16),
-                elevation: 4,
-                color: Colors.green[100],
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+          /// Main content
+          Padding(
+            padding: const EdgeInsets.only(top: 60, left: 20, right: 20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Notifications',
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
                 ),
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Block: ${issueData.blockName}',
-                          style: const TextStyle(
-                              fontWeight: FontWeight.bold)),
-                      Text('Category: ${issueData.category}'),
-                      Text('Room: ${issueData.issue.roomNumber}'),
-                      Text('Floor: ${issueData.issue.floor}'),
-                      Text('Issue: ${issueData.issue.shortDescription}'),
-                      const SizedBox(height: 6),
-                      ExpansionTile(
-                        tilePadding: EdgeInsets.zero,
-                        title: const Text(
-                          "View Details",
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.only(top: 6.0),
-                            child:
-                            Text(issueData.issue.detailedDescription),
-                          ),
-                        ],
+                const SizedBox(height: 20),
+                Expanded(
+                  child: ListView(
+                    padding: const EdgeInsets.only(bottom: 100),
+                    children: const [
+                      NotificationTile(
+                        title: "Issue Update",
+                        subtitle: "Your electrical issue is resolved.",
+                      ),
+                      NotificationTile(
+                        title: "New Announcement",
+                        subtitle: "Hostel cleaning scheduled for Friday.",
+                      ),
+                      NotificationTile(
+                        title: "Reminder",
+                        subtitle: "Don't forget to update your room info.",
+                      ),
+                      NotificationTile(
+                        title: "Feedback",
+                        subtitle: "We value your opinion! Give feedback now.",
                       ),
                     ],
                   ),
                 ),
-              ),
-              // ✅ SOLVED Stamp
-              Positioned(
-                top: 10,
-                right: 20,
-                child: Transform.rotate(
-                  angle: -0.5,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 14, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: Colors.green[700],
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Text(
-                      "SOLVED",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                        letterSpacing: 1.5,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class NotificationTile extends StatelessWidget {
+  final String title;
+  final String subtitle;
+
+  const NotificationTile({
+    super.key,
+    required this.title,
+    required this.subtitle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(18),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+        child: Container(
+          margin: const EdgeInsets.symmetric(vertical: 10),
+          decoration: BoxDecoration(
+            color: Color.fromARGB(255, 212, 105, 141).withOpacity(0.2),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: Colors.white30),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.purple.withOpacity(0.1),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              )
             ],
-          );
-        },
+          ),
+          child: ListTile(
+            leading: const Icon(Icons.notifications, color: Colors.white),
+            title: Text(
+              title,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            subtitle: Text(
+              subtitle,
+              style: const TextStyle(color: Colors.white70),
+            ),
+          ),
+        ),
       ),
     );
   }

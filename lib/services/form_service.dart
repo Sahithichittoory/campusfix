@@ -14,22 +14,13 @@ class ApiService {
   }) async {
     try {
       final uri = Uri.parse('http://54.177.10.216:5000/api/addcomplaint');
-
       final request = http.MultipartRequest('POST', uri)
         ..fields['category'] = category
         ..fields['description'] = description
         ..fields['roll_no'] = rollNo
         ..fields['hostel_block'] = blockNo
         ..fields['room_no'] = roomNo;
-
-      debugPrint("Request fields: ${request.fields}");
-      print(category);
-      print(description);
-      print(rollNo);
-      print(blockNo);
-      print(roomNo);
-      print('hi');
-
+      debugPrint(request.fields.toString());
       if (path != null) {
         debugPrint('image is not null');
         request.files.add(await http.MultipartFile.fromPath('image', path));
@@ -37,8 +28,6 @@ class ApiService {
       } else {
         debugPrint('image is null');
       }
-
-      print('Sending request...');
 
       final streamedResponse = await request.send();
       final responseBody = await streamedResponse.stream.bytesToString();

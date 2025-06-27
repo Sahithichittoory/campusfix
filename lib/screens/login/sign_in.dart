@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:lottie/lottie.dart';
+import 'package:project_spacee/screens/home_screen.dart';
+import 'package:project_spacee/screens/login/forgot%20password.dart';
+import 'package:project_spacee/services/auth_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import '../../services/auth_service.dart';
-import '../home_screen.dart';
 import '../student/student_home_screen.dart';
-import 'forgot password.dart';
+import 'package:lottie/lottie.dart';
 
 class SignIn extends StatefulWidget {
   const SignIn({super.key});
@@ -15,14 +14,15 @@ class SignIn extends StatefulWidget {
 }
 
 class _SignInState extends State<SignIn> {
-  final TextEditingController _rollNoController = TextEditingController();
+  final TextEditingController _idController =
+  TextEditingController(); // ID (admin/student)
   final TextEditingController _passwordController = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   bool _obscureText = true;
   bool _isLoading = false;
 
-  String? _validateRollNo(String? value) {
-    if (value == null || value.isEmpty) return 'Please enter your roll number';
+  String? _validateId(String? value) {
+    if (value == null || value.isEmpty) return 'Please enter your ID';
     return null;
   }
 
@@ -35,41 +35,51 @@ class _SignInState extends State<SignIn> {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
 
-      final rollNo = _rollNoController.text.trim();
+      final id = _idController.text.trim();
       final password = _passwordController.text.trim();
 
-      //final success = await LoginService.loginUser(rollNo, password);
+      Map<String, dynamic>? userData;
+
+      if (id.toUpperCase().startsWith('EMP')) {
+        // Admin login
+        userData = await LoginService.loginAdmin(id, password);
+      } else {
+        // Student login
+        userData = await LoginService.loginUser(id, password);
+      }
 
       setState(() => _isLoading = false);
-      final userData = await LoginService.loginUser(rollNo, password);
+
       if (userData != null) {
-        //sucess
         final prefs = await SharedPreferences.getInstance();
+
         await prefs.setString('name', userData['name'] ?? '');
-        await prefs.setString('rollNo', userData['roll_no'] ?? '');
-        await prefs.setString('blockNo', userData['hostel_block'] ?? '');
-        await prefs.setString('roomNo', userData['room_no'] ?? '');
         await prefs.setString('mobileNo', userData['mobile'].toString());
         await prefs.setString('profileImage', userData['profile_image'] ?? '');
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Login successful')),
-        );
-
-        if (rollNo == 'admin') {
+        if (id.toUpperCase().startsWith('EMP')) {
+          await prefs.setString('adminId', userData['id'] ?? '');
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (_) => HomeScreen()),
+            MaterialPageRoute(
+                builder: (_) => const HomeScreen()), // Admin screen
           );
         } else {
+          await prefs.setString('rollNo', userData['roll_no'] ?? '');
+          await prefs.setString('blockNo', userData['hostel_block'] ?? '');
+          await prefs.setString('roomNo', userData['room_no'] ?? '');
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (_) => const StudentHomeScreen()),
           );
         }
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Login successful')),
+        );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Invalid roll number or password')),
+          const SnackBar(content: Text('Invalid ID or password')),
         );
       }
     }
@@ -77,16 +87,20 @@ class _SignInState extends State<SignIn> {
 
   @override
   Widget build(BuildContext context) {
+    const Color primaryColor = Color(0xFFC562AF);
+    const Color secondaryColor = Color(0xFFFEC5F6);
+    const Color darkText = Color(0xFF3D3D3D);
+
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: secondaryColor,
       body: Column(
         children: [
-          // Top Lottie section with rounded bottom
+          /// Header with Animation
           Container(
             height: 260,
             width: double.infinity,
             decoration: const BoxDecoration(
-              color: Colors.white,
+              color: Color(0xFFDB8DD0),
               borderRadius: BorderRadius.only(
                 bottomLeft: Radius.circular(40),
                 bottomRight: Radius.circular(40),
@@ -94,8 +108,8 @@ class _SignInState extends State<SignIn> {
               boxShadow: [
                 BoxShadow(
                   color: Colors.black12,
-                  blurRadius: 4,
-                  offset: Offset(0, 2),
+                  blurRadius: 6,
+                  offset: Offset(0, 3),
                 ),
               ],
             ),
@@ -103,50 +117,59 @@ class _SignInState extends State<SignIn> {
               child: Lottie.asset(
                 'assets/login_animation.json',
                 height: 200,
-                fit: BoxFit.contain,
               ),
             ),
           ),
 
-          // Login form
+          /// Login Form Section
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 30),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
               child: Form(
                 key: _formKey,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      'Log-in',
+                      'Welcome',
                       style: TextStyle(
                         fontSize: 26,
                         fontWeight: FontWeight.bold,
+                        color: darkText,
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Please login to continue',
+                      style: TextStyle(fontSize: 16, color: Colors.black54),
+                    ),
+                    const SizedBox(height: 24),
+
+                    /// ID Field
                     TextFormField(
-                      controller: _rollNoController,
+                      controller: _idController,
                       decoration: InputDecoration(
-                        labelText: 'Email',
-                        hintText: 'Your email id',
+                        labelText: 'ID (Roll No / Admin ID)',
                         filled: true,
                         fillColor: Colors.white,
+                        prefixIcon: const Icon(Icons.person),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      validator: _validateRollNo,
+                      validator: _validateId,
                     ),
                     const SizedBox(height: 16),
+
+                    /// Password Field
                     TextFormField(
                       controller: _passwordController,
                       obscureText: _obscureText,
                       decoration: InputDecoration(
                         labelText: 'Password',
-                        hintText: 'Password',
                         filled: true,
                         fillColor: Colors.white,
+                        prefixIcon: const Icon(Icons.lock),
                         suffixIcon: IconButton(
                           icon: Icon(
                             _obscureText
@@ -162,7 +185,8 @@ class _SignInState extends State<SignIn> {
                       ),
                       validator: _validatePassword,
                     ),
-                    const SizedBox(height: 10),
+
+                    /// Forgot Password
                     Align(
                       alignment: Alignment.centerRight,
                       child: TextButton(
@@ -176,20 +200,23 @@ class _SignInState extends State<SignIn> {
                         },
                         child: const Text(
                           'Forgot password?',
-                          style: TextStyle(color: Colors.grey),
+                          style: TextStyle(color: Colors.black54),
                         ),
                       ),
                     ),
                     const SizedBox(height: 10),
+
+                    /// Login Button
                     SizedBox(
                       width: double.infinity,
                       height: 50,
                       child: ElevatedButton(
                         onPressed: _isLoading ? null : _signIn,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.black87,
+                          backgroundColor: primaryColor,
+                          foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
+                            borderRadius: BorderRadius.circular(12),
                           ),
                         ),
                         child: _isLoading
@@ -198,7 +225,10 @@ class _SignInState extends State<SignIn> {
                         )
                             : const Text(
                           'Login',
-                          style: TextStyle(color: Colors.white),
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
                         ),
                       ),
                     ),

@@ -1,5 +1,7 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
-import '../../services/otp_service.dart';
+import 'package:project_spacee/services/otp_service.dart';
 import 'otp_screen.dart';
 
 class ForgotPasswordModal extends StatefulWidget {
@@ -76,7 +78,7 @@ class _ForgotPasswordModalState extends State<ForgotPasswordModal> {
                 style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
             const SizedBox(height: 10),
             const Text(
-                "Enter your roll number to receive a 4-digit verification code."),
+                "Enter your roll number to receive a 6-digit verification code."),
             const SizedBox(height: 20),
             TextField(
               controller: rollNumberController,
@@ -84,7 +86,8 @@ class _ForgotPasswordModalState extends State<ForgotPasswordModal> {
                 labelText: "Roll Number",
                 hintText: "Enter your registered roll number",
                 suffixIcon: Icon(Icons.person_outline),
-                border: OutlineInputBorder(),
+                border: OutlineInputBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(400))),
               ),
             ),
             const SizedBox(height: 20),
@@ -92,9 +95,14 @@ class _ForgotPasswordModalState extends State<ForgotPasswordModal> {
                 ? const Center(child: CircularProgressIndicator())
                 : ElevatedButton(
               onPressed: _sendOtp,
-              child: const Text("Continue"),
+              child: const Text(
+                "Continue",
+                style: TextStyle(color: Colors.white),
+              ),
               style: ElevatedButton.styleFrom(
-                minimumSize: const Size(double.infinity, 50),
+                backgroundColor:
+                Color.fromARGB(255, 245, 107, 153).withOpacity(0.4),
+                minimumSize: const Size(20, 50),
               ),
             ),
           ],

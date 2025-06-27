@@ -185,7 +185,9 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                         child: ElevatedButton(
                           onPressed: _handleChangePassword,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green.shade600,
+                            backgroundColor:
+                            const Color.fromARGB(255, 245, 107, 153)
+                                .withOpacity(0.4),
                             padding:
                             const EdgeInsets.symmetric(vertical: 14),
                             shape: RoundedRectangleBorder(

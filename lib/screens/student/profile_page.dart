@@ -1,10 +1,14 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:project_spacee/screens/login/forgot%20password.dart';
+import 'package:project_spacee/screens/login/sign_in.dart';
+import 'package:project_spacee/screens/student/history.dart';
+import 'package:project_spacee/screens/student/student_home_screen.dart';
+import 'package:project_spacee/services/issuemodal.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../login/forgot password.dart';
-import '../login/sign_in.dart';
 
 class ProfileScreen extends StatefulWidget {
-  const ProfileScreen({super.key});
+  const ProfileScreen({super.key, IssueModel? issue});
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
@@ -17,6 +21,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String roomNo = '';
   String mobileNo = '';
   String profileImage = '';
+  String category = '';
+  String description = '';
+  String image = '';
   bool isLoading = true;
 
   @override
@@ -27,7 +34,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> loadStudentData() async {
     final prefs = await SharedPreferences.getInstance();
-
     setState(() {
       name = prefs.getString('name') ?? '';
       rollNo = prefs.getString('rollNo') ?? '';
@@ -35,6 +41,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
       roomNo = prefs.getString('roomNo') ?? '';
       mobileNo = prefs.getString('mobileNo') ?? '';
       profileImage = prefs.getString('profileImage') ?? '';
+      category = prefs.getString('latestCategory') ?? '';
+      description = prefs.getString('latestDescription') ?? '';
+      image = prefs.getString('latestImage') ?? '';
       isLoading = false;
     });
   }
@@ -44,74 +53,186 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final size = MediaQuery.of(context).size;
 
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: const Color(0xFFFEC5F6),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : Stack(
         children: [
+          /// Background with blur
           Container(
-            height: size.height * 0.6,
-            color: Colors.lightBlue[300],
+            height: size.height * 0.4,
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0xFFC562AF), Color(0xFFB33791)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+              child: Container(color: Colors.transparent),
+            ),
           ),
+
+          /// Foreground Content
           SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Column(
               children: [
-                SizedBox(height: size.height * 0.12),
+                const SizedBox(height: 60),
+
+                /// Profile Image
                 CircleAvatar(
-                    radius: size.width * 0.22,
-                    backgroundImage: profileImage.isNotEmpty
-                        ? NetworkImage(profileImage)
-                        : null),
-                SizedBox(height: size.height * 0.030),
+                  radius: size.width * 0.22,
+                  backgroundColor: Colors.white,
+                  backgroundImage: profileImage.isNotEmpty
+                      ? NetworkImage(profileImage)
+                      : null,
+                  child: profileImage.isEmpty
+                      ? const Icon(Icons.person,
+                      size: 80, color: Color(0xFFC562AF))
+                      : null,
+                ),
+                const SizedBox(height: 20),
+
+                /// Name
                 Text(
                   name,
-                  style: TextStyle(
-                    fontSize: size.width * 0.08,
+                  style: const TextStyle(
+                    fontSize: 24,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
                   ),
                 ),
-                SizedBox(height: size.height * 0.05),
+
+                const SizedBox(height: 30),
+
+                /// Info Card
                 Container(
-                  width: size.width * 0.9,
-                  child: Card(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: Color.fromARGB(255, 215, 64, 115)
+                          .withOpacity(0.85),
                     ),
-                    elevation: 6,
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(
-                        vertical: size.height * 0.03,
-                        horizontal: size.width * 0.06,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black12,
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
                       ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _infoRow("Roll No", rollNo, size),
-                          _infoRow("Block No", blockNo, size),
-                          _infoRow("Room No", roomNo, size),
-                          _infoRow("Mobile No", mobileNo, size),
-                        ],
-                      ),
-                    ),
+                    ],
                   ),
-                ),
-                SizedBox(height: size.height * 0.04),
-                Padding(
-                  padding:
-                  EdgeInsets.symmetric(horizontal: size.width * 0.06),
+                  padding: const EdgeInsets.all(20),
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _button(
-                          context, "Change Password", Colors.lightBlue),
-                      SizedBox(height: size.height * 0.02),
-                      _button(context, "Logout", Colors.redAccent),
+                      _infoRow("Roll No", rollNo),
+                      _infoRow("Block No", blockNo),
+                      _infoRow("Room No", roomNo),
+                      _infoRow("Mobile No", mobileNo),
                     ],
                   ),
                 ),
+
+                const SizedBox(height: 20),
+
+                /// History Button (Large)
                 SizedBox(
-                    height:
-                    size.height * 0.12), // leave space for bottom bar
+                  width: 200,
+                  height: 50,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => History(
+                            category: category,
+                            description: description,
+                            imageData: image,
+                          ),
+                        ),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFDB8DD0),
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                    ),
+                    child: const Text(
+                      "History",
+                      style: TextStyle(
+                          fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
+                /// Change Password Button (Medium)
+                SizedBox(
+                  width: 200,
+                  height: 44,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFDB8DD0),
+                      foregroundColor: Colors.white,
+                      elevation: 4,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                    ),
+                    onPressed: () {
+                      showModalBottomSheet(
+                        context: context,
+                        isScrollControlled: true,
+                        backgroundColor: Colors.transparent,
+                        builder: (_) => ForgotPasswordModal(),
+                      );
+                    },
+                    child: const Text(
+                      "Change Password",
+                      style: TextStyle(
+                          fontSize: 15, fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
+                /// Logout Button (Small)
+                SizedBox(
+                  width: 130,
+                  height: 40,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.redAccent,
+                      foregroundColor: Colors.white,
+                      elevation: 4,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                    onPressed: () {
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const SignIn(),
+                        ),
+                      );
+                    },
+                    child: const Text(
+                      "Logout",
+                      style: TextStyle(
+                          fontSize: 14, fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 30),
               ],
             ),
           ),
@@ -120,61 +241,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _infoRow(String label, String value, Size size) {
+  Widget _infoRow(String label, String value) {
     return Padding(
-      padding: EdgeInsets.symmetric(vertical: size.height * 0.008),
+      padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
         children: [
           Text(
             "$label: ",
-            style: TextStyle(
+            style: const TextStyle(
               fontWeight: FontWeight.bold,
-              fontSize: size.width * 0.045,
+              fontSize: 16,
+              color: Color(0xFF3D3D3D),
             ),
           ),
           Expanded(
             child: Text(
               value,
-              style: TextStyle(
-                fontSize: size.width * 0.045,
+              style: const TextStyle(
+                fontSize: 16,
+                color: Color(0xFF3D3D3D),
               ),
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _button(BuildContext context, String text, Color color) {
-    return SizedBox(
-      width: double.infinity,
-      height: MediaQuery.of(context).size.height * 0.06,
-      child: ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: color,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-        onPressed: () {
-          if (text == "Logout") {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (_) => const SignIn()),
-            );
-          } else if (text == "Change Password") {
-            showModalBottomSheet(
-              context: context,
-              isScrollControlled: true,
-              backgroundColor: Colors.transparent,
-              builder: (_) => ForgotPasswordModal(),
-            );
-          }
-        },
-        child: Text(
-          text,
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-        ),
       ),
     );
   }

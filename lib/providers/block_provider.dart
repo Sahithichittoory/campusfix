@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/block.dart';
 import '../models/issue.dart';
-import '../models/issue_data.dart';
-import 'issue_provider.dart';
+import '../models/issue_data.dart'; // ⬅️ Add this import
 
 class BlockProvider with ChangeNotifier {
   List<Block> _blocks = [];
@@ -62,6 +61,8 @@ class BlockProvider with ChangeNotifier {
     block.issues[category]![index].status = newStatus;
     notifyListeners();
   }
+
+  /// ✅ New Method to Fetch Solved Issues
   List<IssueData> getAllSolvedIssues() {
     List<IssueData> solved = [];
 

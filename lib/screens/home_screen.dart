@@ -1,3 +1,5 @@
+
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:project_spacee/screens/solved_screen.dart';
 import 'package:provider/provider.dart';
@@ -19,9 +21,20 @@ class HomeScreen extends StatelessWidget {
     final blocks = Provider.of<BlockProvider>(context).blocks;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF1B1444),
       body: Stack(
         children: [
+          /// Background Gradient
+          Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0xFFFEC5F6), Color(0xFFDB8DD0)],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
+            ),
+          ),
+
+          /// Greeting and Blocks
           Column(
             children: [
               const SizedBox(height: 60),
@@ -34,7 +47,7 @@ class HomeScreen extends StatelessWidget {
                     style: const TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: Color(0xFF2E1A64),
                     ),
                   ),
                 ),
@@ -56,17 +69,21 @@ class HomeScreen extends StatelessWidget {
                         );
                       },
                       child: Container(
-                        height: 140,
+                        height: 130,
                         margin: const EdgeInsets.only(bottom: 16),
                         padding: const EdgeInsets.all(20),
                         decoration: BoxDecoration(
-                          color: Colors.deepPurple[300],
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFFC562AF), Color(0xFFB33791)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
                           borderRadius: BorderRadius.circular(16),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.3),
-                              blurRadius: 6,
-                              offset: const Offset(0, 3),
+                              color: Colors.black.withOpacity(0.2),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
                             ),
                           ],
                         ),
@@ -85,7 +102,7 @@ class HomeScreen extends StatelessWidget {
                   },
                 ),
               ),
-              const SizedBox(height: 80),
+              const SizedBox(height: 100),
             ],
           ),
 
@@ -94,89 +111,96 @@ class HomeScreen extends StatelessWidget {
             bottom: 20,
             left: 20,
             right: 20,
-            child: Container(
-              height: 70,
-              decoration: BoxDecoration(
-                color: const Color(0xFF2E1A64),
-                borderRadius: BorderRadius.circular(40),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.3),
-                    blurRadius: 10,
-                    offset: const Offset(0, 5),
-                  ),
-                ],
-              ),
-              child: Stack(
-                children: [
-                  /// Left & Right Icons
-                  Center(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 40),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.calendar_today_outlined,
-                                color: Colors.white),
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (_) => const SolvedScreen()),
-                              );
-                            },
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.group_outlined,
-                                color: Colors.white),
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (_) => const SolvedScreen()),
-                              );
-                            },
-                          ),
-                        ],
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(40),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                child: Container(
+                  height: 75,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(40),
+                    border: Border.all(color: Colors.white30),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.15),
+                        blurRadius: 12,
+                        offset: const Offset(0, 6),
                       ),
-                    ),
+                    ],
                   ),
+                  child: Stack(
+                    children: [
+                      Center(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 40),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.calendar_today_outlined,
+                                    color: Colors.white),
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (_) => const SolvedScreen()),
+                                  );
+                                },
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.group_outlined,
+                                    color: Colors.white),
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (_) => const SolvedScreen()),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
 
-                  /// Floating + Button in Center
-                  Align(
-                    alignment: Alignment.topCenter,
-                    child: Transform.translate(
-                      offset: const Offset(0, -25),
-                      child: Container(
-                        height: 55,
-                        width: 55,
-                        decoration: const BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.pinkAccent,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black26,
-                              blurRadius: 6,
-                              offset: Offset(0, 4),
-                            )
-                          ],
-                        ),
-                        child: IconButton(
-                          icon: const Icon(Icons.home_outlined,
-                              color: Colors.white),
-                          onPressed: () {
-                            Navigator.pushAndRemoveUntil(
-                              context,
-                              MaterialPageRoute(builder: (_) => HomeScreen()),
-                                  (Route<dynamic> route) => false,
-                            );
-                          },
+                      /// Floating home button
+                      Align(
+                        alignment: Alignment.topCenter,
+                        child: Transform.translate(
+                          offset: const Offset(0, -25),
+                          child: Container(
+                            height: 60,
+                            width: 60,
+                            decoration: const BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Color(0xFFB33791),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black26,
+                                  blurRadius: 8,
+                                  offset: Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: IconButton(
+                              icon: const Icon(Icons.home_outlined,
+                                  color: Colors.white),
+                              onPressed: () {
+                                Navigator.pushAndRemoveUntil(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (_) => const HomeScreen()),
+                                      (route) => false,
+                                );
+                              },
+                            ),
+                          ),
                         ),
                       ),
-                    ),
+                    ],
                   ),
-                ],
+                ),
               ),
             ),
           ),
