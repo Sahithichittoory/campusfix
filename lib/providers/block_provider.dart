@@ -1,85 +1,35 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import '../models/block.dart';
-import '../models/issue.dart';
-import '../models/issue_data.dart'; // ⬅️ Add this import
 
 class BlockProvider with ChangeNotifier {
   List<Block> _blocks = [];
 
   List<Block> get blocks => _blocks;
 
-  BlockProvider() {
-    loadInitialData();
+  Future<void> fetchBlocksWithComplaints() async {
+    final url = Uri.parse('http://54.177.10.216:5000/api/complaints/count');
+    try {
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final extractedData = json.decode(response.body);
+        final List<dynamic> blockData = extractedData['data'];
+
+        _blocks = blockData.map((b) => Block.fromJson(b)).toList();
+        notifyListeners();
+      } else {
+        throw Exception('Failed to load blocks');
+      }
+    } catch (error) {
+      print('Error fetching blocks: $error');
+      rethrow;
+    }
   }
 
-  void loadInitialData() {
-    _blocks = [
-      Block(
-        name: 'A',
-        issues: {
-          'electrical': [
-            Issue(
-              roomNumber: '101',
-              floor: '1',
-              shortDescription: 'Light not working',
-              detailedDescription: 'Tube light not turning on since morning.',
-            ),
-          ],
-          'plumber': [
-            Issue(
-              roomNumber: '102',
-              floor: '1',
-              shortDescription: 'Leaking tap',
-              detailedDescription: 'Tap is continuously leaking in washroom.',
-            ),
-          ],
-          'carpenter': [],
-        },
-      ),
-      Block(
-        name: 'B',
-        issues: {
-          'electrical': [],
-          'plumber': [],
-          'carpenter': [
-            Issue(
-              roomNumber: '201',
-              floor: '2',
-              shortDescription: 'Broken chair',
-              detailedDescription: 'Chair leg broken in room.',
-            ),
-          ],
-        },
-      ),
-    ];
-    notifyListeners();
-  }
+  getAllSolvedIssues() {}
 
   void updateIssueStatus(
-      String blockName, String category, int index, String newStatus) {
-    final block = _blocks.firstWhere((b) => b.name == blockName);
-    block.issues[category]![index].status = newStatus;
-    notifyListeners();
-  }
-
-  /// ✅ New Method to Fetch Solved Issues
-  List<IssueData> getAllSolvedIssues() {
-    List<IssueData> solved = [];
-
-    for (var block in _blocks) {
-      for (var category in block.issues.keys) {
-        for (var issue in block.issues[category]!) {
-          if (issue.status == 'Solved') {
-            solved.add(IssueData(
-              blockName: block.name,
-              category: category,
-              issue: issue,
-            ));
-          }
-        }
-      }
-    }
-
-    return solved;
-  }
+      String blockName, String category, int index, String s) {}
 }

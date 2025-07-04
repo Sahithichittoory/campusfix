@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import '../models/student_issue.dart';
 
@@ -39,4 +38,8 @@ class IssueProvider with ChangeNotifier {
     _issues.remove(issue);
     notifyListeners();
   }
+
+  fetchIssuesByBlockAndCategory(String blockId, String category) {}
+
+  getIssues(String blockId, String category) {}
 }

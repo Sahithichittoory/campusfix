@@ -13,9 +13,10 @@ class SolvedScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Solved Issues"),
-        backgroundColor: Colors.deepPurple,
+        backgroundColor: Color.fromARGB(255, 247, 164, 240),
       ),
-      body: solvedIssues.isEmpty
+      backgroundColor: Color.fromARGB(255, 247, 164, 240),
+      body: (solvedIssues == null || solvedIssues.isEmpty)
           ? const Center(
         child: Text(
           "No issues marked as solved yet.",
@@ -23,7 +24,7 @@ class SolvedScreen extends StatelessWidget {
         ),
       )
           : ListView.builder(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+        padding: const EdgeInsets.all(12),
         itemCount: solvedIssues.length,
         itemBuilder: (ctx, index) {
           final issueData = solvedIssues[index];
@@ -31,7 +32,7 @@ class SolvedScreen extends StatelessWidget {
           return Stack(
             children: [
               Card(
-                margin: const EdgeInsets.only(bottom: 16),
+                margin: const EdgeInsets.only(bottom: 20),
                 elevation: 4,
                 color: Colors.green[100],
                 shape: RoundedRectangleBorder(
@@ -42,14 +43,33 @@ class SolvedScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Block: ${issueData.blockName}',
-                          style: const TextStyle(
-                              fontWeight: FontWeight.bold)),
+                      Text(
+                        'Block: ${issueData.blockName}',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
                       Text('Category: ${issueData.category}'),
                       Text('Room: ${issueData.issue.roomNumber}'),
                       Text('Floor: ${issueData.issue.floor}'),
                       Text('Issue: ${issueData.issue.shortDescription}'),
                       const SizedBox(height: 6),
+                      if (issueData.issue.imageUrl != null &&
+                          issueData.issue.imageUrl!.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 10),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: Image.network(
+                              issueData.issue.imageUrl!,
+                              height: 160,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        ),
                       ExpansionTile(
                         tilePadding: EdgeInsets.zero,
                         title: const Text(
@@ -58,9 +78,13 @@ class SolvedScreen extends StatelessWidget {
                         ),
                         children: [
                           Padding(
-                            padding: const EdgeInsets.only(top: 6.0),
-                            child:
-                            Text(issueData.issue.detailedDescription),
+                            padding: const EdgeInsets.only(
+                                top: 6.0, bottom: 8),
+                            child: Text(
+                              issueData.issue.detailedDescription ??
+                                  "No extra details provided.",
+                              style: const TextStyle(fontSize: 14),
+                            ),
                           ),
                         ],
                       ),
@@ -68,7 +92,8 @@ class SolvedScreen extends StatelessWidget {
                   ),
                 ),
               ),
-              // ✅ SOLVED Stamp
+
+              // ✅ SOLVED stamp
               Positioned(
                 top: 10,
                 right: 20,

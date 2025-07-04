@@ -4,12 +4,13 @@ import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:project_spacee/services/form_service.dart';
-import 'package:project_spacee/services/issuemodal.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import 'package:project_spacee/services/form_service.dart';
+import 'package:project_spacee/services/issuemodal.dart'; // Make sure this file contains only one IssueModel definition
+
 import 'notify_page.dart';
 import 'profile_page.dart';
-
 
 class StudentHomeScreen extends StatefulWidget {
   const StudentHomeScreen({super.key});
@@ -25,7 +26,7 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
   void _onIssueSubmitted(IssueModel issue) {
     setState(() {
       _submittedIssue = issue;
-      _selectedIndex = 2; // Go to Profile after submission
+      _selectedIndex = 2;
     });
   }
 
@@ -79,7 +80,6 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
   }
 }
 
-// Form Screen with callback
 class IssueFormScreen extends StatefulWidget {
   final Function(IssueModel) onSubmit;
 
@@ -91,12 +91,15 @@ class IssueFormScreen extends StatefulWidget {
 
 class _IssueFormScreenState extends State<IssueFormScreen> {
   final _formKey = GlobalKey<FormState>();
-  String? category, description;
+  // Removed 'description' state variable as controller will be the source of truth
+  String? category;
   String rollNo = '', blockNo = '', roomNo = '';
   File? _imageFile;
-  String? _base64Image;
   Uint8List? _webImageData;
   Key _dropdownKey = UniqueKey();
+
+  // Add a TextEditingController for the description field
+  final TextEditingController _descriptionController = TextEditingController();
 
   final categories = [
     'Electricity',
@@ -107,17 +110,17 @@ class _IssueFormScreenState extends State<IssueFormScreen> {
     'Other'
   ];
 
-  String getGreeting() {
-    final hour = DateTime.now().hour;
-    if (hour < 12) return 'Good Morning';
-    if (hour < 17) return 'Good Afternoon';
-    return 'Good Evening';
-  }
-
   @override
   void initState() {
     super.initState();
     loadStudentInfo();
+  }
+
+  @override
+  void dispose() {
+    // Dispose the controller when the widget is removed
+    _descriptionController.dispose();
+    super.dispose();
   }
 
   Future<void> loadStudentInfo() async {
@@ -131,7 +134,6 @@ class _IssueFormScreenState extends State<IssueFormScreen> {
 
   Future<void> pickImage() async {
     final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
-
     if (picked != null) {
       if (kIsWeb) {
         final bytes = await picked.readAsBytes();
@@ -148,9 +150,38 @@ class _IssueFormScreenState extends State<IssueFormScreen> {
     }
   }
 
+  void _showTopMessage(String message, {Color backgroundColor = Colors.green}) {
+    final overlay = Overlay.of(context);
+    final entry = OverlayEntry(
+      builder: (context) => Positioned(
+        top: 0,
+        left: 0,
+        right: 0,
+        child: Material(
+          color: backgroundColor,
+          elevation: 8,
+          child: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              child: Center(
+                child: Text(
+                  message,
+                  style: const TextStyle(color: Colors.white, fontSize: 16),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    overlay.insert(entry);
+    Future.delayed(const Duration(seconds: 3), () => entry.remove());
+  }
+
   void submitForm() async {
     if (_formKey.currentState!.validate()) {
-      _formKey.currentState!.save();
+      // No need to call _formKey.currentState!.save() for description if we use controller.text directly
       showDialog(
         context: context,
         barrierDismissible: false,
@@ -160,7 +191,7 @@ class _IssueFormScreenState extends State<IssueFormScreen> {
       try {
         final responseData = await ApiService.addComplaint(
           category: category!,
-          description: description!,
+          description: _descriptionController.text, // Get text directly from controller
           rollNo: rollNo,
           blockNo: blockNo,
           roomNo: roomNo,
@@ -175,47 +206,33 @@ class _IssueFormScreenState extends State<IssueFormScreen> {
 
           widget.onSubmit(IssueModel(
             category: category!,
-            description: description!,
+            description: _descriptionController.text, // Use controller text for IssueModel
             imageBytes: imageBytes,
           ));
 
-          _formKey.currentState!.reset();
+          // Reset the form fields and controller
+          _formKey.currentState!.reset(); // Resets validation and dropdown state
+          _descriptionController.clear(); // Clears the text field explicitly
+
           setState(() {
-            category = null;
-            description = null;
-            _imageFile = null;
-            _base64Image = null;
-            _dropdownKey = UniqueKey();
+            category = null; // Clear selected category
+            _imageFile = null; // Clear selected image
+            _webImageData = null; // Clear web image data
+            _dropdownKey = UniqueKey(); // Force rebuild dropdown to show hint
           });
 
-          showDialog(
-            context: context,
-            builder: (ctx) => AlertDialog(
-              title: const Text("Success"),
-              content: Text(
-                  responseData['message'] ?? "Issue submitted successfully!"),
-              actions: [
-                TextButton(
-                    onPressed: () => Navigator.of(ctx).pop(),
-                    child: const Text("OK"))
-              ],
-            ),
-          );
+          _showTopMessage("Issue submitted successfully!",
+              backgroundColor: Colors.green);
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content:
-              Text(responseData?['message'] ?? "Failed to submit issue"),
-              backgroundColor: Colors.red,
-            ),
+          _showTopMessage(
+            responseData?['message'] ?? "Failed to submit issue",
+            backgroundColor: Colors.red,
           );
         }
       } catch (e) {
         Navigator.of(context).pop();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text("Something went wrong. Please try again")),
-        );
+        _showTopMessage("Something went wrong. Please try again",
+            backgroundColor: Colors.red);
       }
     }
   }
@@ -228,7 +245,6 @@ class _IssueFormScreenState extends State<IssueFormScreen> {
         fillColor: Colors.white,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFFB33791)),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
@@ -247,7 +263,7 @@ class _IssueFormScreenState extends State<IssueFormScreen> {
           children: [
             const SizedBox(height: 50),
             Text(
-              getGreeting(),
+              "Hello!",
               style: const TextStyle(
                 fontSize: 26,
                 fontWeight: FontWeight.bold,
@@ -259,13 +275,6 @@ class _IssueFormScreenState extends State<IssueFormScreen> {
               decoration: BoxDecoration(
                 color: const Color(0xFFDB8DD0),
                 borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 10,
-                    offset: const Offset(0, 5),
-                  ),
-                ],
               ),
               padding: const EdgeInsets.all(20),
               child: Form(
@@ -282,18 +291,19 @@ class _IssueFormScreenState extends State<IssueFormScreen> {
                           .map((cat) =>
                           DropdownMenuItem(value: cat, child: Text(cat)))
                           .toList(),
-                      validator: (val) =>
-                      val == null ? "Select category" : null,
+                      validator: (val) => val == null ? "Select category" : null,
                     ),
                     const SizedBox(height: 12),
                     TextFormField(
-                      decoration: _inputDecoration(
-                          "Describe the Issue", Icons.description),
+                      controller: _descriptionController, // Assign the controller
+                      decoration:
+                      _inputDecoration("Describe the Issue", Icons.description),
                       maxLines: 4,
-                      validator: (val) => val!.length < 10
+                      // Updated validator to also check for emptiness
+                      validator: (val) => val!.isEmpty || val.length < 10
                           ? "Describe at least 10 characters"
                           : null,
-                      onSaved: (val) => description = val,
+                      // Removed onSaved as we directly use _descriptionController.text
                     ),
                     const SizedBox(height: 12),
                     ElevatedButton.icon(
@@ -314,6 +324,20 @@ class _IssueFormScreenState extends State<IssueFormScreen> {
                           borderRadius: BorderRadius.circular(12),
                           child: Image.file(
                             _imageFile!,
+                            height: 160,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
+                    // For web image display, add this condition
+                    if (kIsWeb && _webImageData != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 12.0),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Image.memory(
+                            _webImageData!,
                             height: 160,
                             width: double.infinity,
                             fit: BoxFit.cover,

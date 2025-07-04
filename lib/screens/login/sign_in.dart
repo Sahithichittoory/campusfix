@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:project_spacee/screens/home_screen.dart';
 import 'package:project_spacee/screens/login/forgot%20password.dart';
@@ -31,6 +32,60 @@ class _SignInState extends State<SignIn> {
     return null;
   }
 
+  // void _signIn() async {
+  //   if (_formKey.currentState!.validate()) {
+  //     setState(() => _isLoading = true);
+
+  //     final id = _idController.text.trim();
+  //     final password = _passwordController.text.trim();
+
+  //     Map<String, dynamic>? userData;
+
+  //     if (id.toUpperCase().startsWith('EMP')) {
+  //       // Admin login
+  //       userData = await LoginService.loginAdmin(id, password);
+
+  //     } else {
+  //       // Student login
+  //       userData = await LoginService.loginUser(id, password);
+  //     }
+
+  //     setState(() => _isLoading = false);
+
+  //     if (userData != null) {
+  //       final prefs = await SharedPreferences.getInstance();
+
+  //       await prefs.setString('name', userData['name'] ?? '');
+  //       await prefs.setString('mobileNo', userData['mobile'].toString());
+  //       await prefs.setString('profileImage', userData['profile_image'] ?? '');
+
+  //       if (id.toUpperCase().startsWith('EMP')) {
+  //         await prefs.setString('adminId', userData['id'] ?? '');
+  //         Navigator.pushReplacement(
+  //           context,
+  //           MaterialPageRoute(
+  //               builder: (_) => const HomeScreen()), // Admin screen
+  //         );
+  //       } else {
+  //         await prefs.setString('rollNo', userData['roll_no'] ?? '');
+  //         await prefs.setString('blockNo', userData['hostel_block'] ?? '');
+  //         await prefs.setString('roomNo', userData['room_no'] ?? '');
+  //         Navigator.pushReplacement(
+  //           context,
+  //           MaterialPageRoute(builder: (_) => const StudentHomeScreen()),
+  //         );
+  //       }
+
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         const SnackBar(content: Text('Login successful')),
+  //       );
+  //     } else {
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         const SnackBar(content: Text('Invalid ID or password')),
+  //       );
+  //     }
+  //   }
+  // }
   void _signIn() async {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
@@ -38,50 +93,75 @@ class _SignInState extends State<SignIn> {
       final id = _idController.text.trim();
       final password = _passwordController.text.trim();
 
-      Map<String, dynamic>? userData;
-
       if (id.toUpperCase().startsWith('EMP')) {
-        // Admin login
-        userData = await LoginService.loginAdmin(id, password);
-      } else {
-        // Student login
-        userData = await LoginService.loginUser(id, password);
-      }
+        // ✅ Admin login
+        final userData = await LoginService.loginAdmin(id, password);
 
-      setState(() => _isLoading = false);
+        if (userData != null) {
+          // ✅ Fetch complete admin details from another API
+          final adminDetails = await LoginService.loginAdmin(id, password);
 
-      if (userData != null) {
-        final prefs = await SharedPreferences.getInstance();
+          if (adminDetails != null) {
+            // ✅ Save admin details using shared preferences
+            final prefs = await SharedPreferences.getInstance();
+            await prefs.setString('adminId', adminDetails['employeeId'] ?? '');
+            await prefs.setString('adminName', adminDetails['name'] ?? '');
+            await prefs.setString('adminEmail', adminDetails['email'] ?? '');
+            await prefs.setString(
+                'adminMobile', adminDetails['mobile'].toString());
 
-        await prefs.setString('name', userData['name'] ?? '');
-        await prefs.setString('mobileNo', userData['mobile'].toString());
-        await prefs.setString('profileImage', userData['profile_image'] ?? '');
+            await prefs.setString(
+                'profileImage', adminDetails['profile_image'] ?? '');
 
-        if (id.toUpperCase().startsWith('EMP')) {
-          await prefs.setString('adminId', userData['id'] ?? '');
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-                builder: (_) => const HomeScreen()), // Admin screen
-          );
+            // ✅ Navigate to admin home screen
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (_) => const HomeScreen()),
+            );
+
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Admin login successful')),
+            );
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Failed to fetch admin details')),
+            );
+          }
         } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Invalid admin ID or password')),
+          );
+        }
+      } else {
+        // ✅ Student login
+        final userData = await LoginService.loginUser(id, password);
+
+        if (userData != null) {
+          final prefs = await SharedPreferences.getInstance();
           await prefs.setString('rollNo', userData['roll_no'] ?? '');
           await prefs.setString('blockNo', userData['hostel_block'] ?? '');
           await prefs.setString('roomNo', userData['room_no'] ?? '');
+          await prefs.setString('name', userData['name'] ?? '');
+          await prefs.setString('mobileNo', userData['mobile'].toString());
+          await prefs.setString(
+              'profileImage', userData['profile_image'] ?? '');
+
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (_) => const StudentHomeScreen()),
           );
-        }
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Login successful')),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Invalid ID or password')),
-        );
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Student login successful')),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Invalid roll number or password')),
+          );
+        }
       }
+
+      setState(() => _isLoading = false);
     }
   }
 

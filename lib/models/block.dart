@@ -1,8 +1,13 @@
-import 'issue.dart';
-
 class Block {
-  final String name;
-  final Map<String, List<Issue>> issues;
+  final String id;
+  final int count;
 
-  Block({required this.name, required this.issues});
+  Block({required this.id, required this.count});
+
+  factory Block.fromJson(Map<String, dynamic> json) {
+    return Block(
+      id: json['_id'],
+      count: json['count'],
+    );
+  }
 }

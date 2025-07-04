@@ -1,4 +1,3 @@
-
 class Issue {
   String roomNumber;
   String floor;

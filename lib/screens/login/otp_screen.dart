@@ -100,7 +100,7 @@ class _OTPModalState extends State<OTPModal> {
                       ),
 
                       const Text(
-                        "Enter the 6-digit code sent to your Mobile No.",
+                        "Enter the 6-digit code sent to your email.",
                         textAlign: TextAlign.center,
                         style: TextStyle(fontSize: 16),
                       ),

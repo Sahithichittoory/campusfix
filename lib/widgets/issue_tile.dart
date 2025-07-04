@@ -9,7 +9,8 @@ class IssueTile extends StatelessWidget {
   final Issue issue;
   final int index;
 
-  const IssueTile({super.key,
+  const IssueTile({
+    super.key,
     required this.blockName,
     required this.category,
     required this.issue,

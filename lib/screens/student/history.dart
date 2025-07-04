@@ -1,3 +1,4 @@
+
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
@@ -32,11 +33,6 @@ class History extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: Colors.grey[100],
-      appBar: AppBar(
-        title: const Text('Complaint History'),
-        backgroundColor: Colors.deepPurpleAccent,
-        foregroundColor: Colors.white,
-      ),
       body: hasComplaint
           ? ListView(
         padding: const EdgeInsets.all(16),
@@ -83,7 +79,7 @@ class History extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Icon(Icons.description,
-                        color: Color(0xFFC562AF)),
+                        color: Colors.deepPurple),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
